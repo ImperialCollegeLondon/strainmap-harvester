@@ -47,7 +47,7 @@ def check_directories(directory: Union[Path, str], output: Union[Path, str]):
 def scan_directory(directory: Union[Path, str]):
     """
     Recursively scans the directory for files we want harvesting,
-    returning a nested list of data elements from each file.
+    returning a dataframe of data elements from each file.
 
     Args:
         directory (Union[Path, str]): Input directory containing the netCDF files
@@ -58,7 +58,7 @@ def scan_directory(directory: Union[Path, str]):
                 Name: absolute_path, dtype: str
                 Name: NAME, dtype: str
                 Name: CINE", dtype: str
-                Name: DATE, dtype
+                Name: DATE, dtype: datetime
     """
 
     filename_data = []
