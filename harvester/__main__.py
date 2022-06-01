@@ -1,3 +1,5 @@
+"""Harvester for netCDF files"""
+
 from datetime import datetime
 from pathlib import Path
 from typing import Union
@@ -11,7 +13,15 @@ import pandas as pd
     "-d", "--directory", default="./", help="Provide the directory to scan for files"
 )
 @click.option("-o", "--output", default="./", help="Specify the output CSV location")
-def harvester(directory: Union[Path, str], output: Union[Path, str]):
+@click.option(
+    "-f",
+    "--filename",
+    default="harvested_files.csv",
+    help="Specify the output CSV filename",
+)
+def harvester(
+    directory: Union[Path, str], output: Union[Path, str], filename: Union[Path, str]
+):
     """
     Performs the harvesting of netCDF files within a user-defined directory.
 
@@ -23,10 +33,10 @@ def harvester(directory: Union[Path, str], output: Union[Path, str]):
 
     filename_data = scan_directory(directory)
 
-    output_csv(filename_data, output)
+    output_csv(filename_data, output, filename)
 
 
-def check_directories(directory: Union[Path, str], output: Union[Path, str]):
+def check_directories(*directories: Union[Path, str]):
     """
     Checks if the user-defined directories are existing directories
 
@@ -35,13 +45,10 @@ def check_directories(directory: Union[Path, str], output: Union[Path, str]):
         output (Union[Path, str]): Directory
     """
 
-    # Check if input directory is a valid directory
-    if not Path.is_dir(Path(directory)):
-        raise click.UsageError(f"{directory} is not an existing directory")
-
-    # Check if output directory is a valid directory
-    if not Path.is_dir(Path(output)):
-        raise click.UsageError(f"{output} is not an existing directory")
+    for directory in directories:
+        # Check if input directory is a valid directory
+        if not Path(directory).is_dir():
+            raise click.UsageError(f"{directory} is not an existing directory")
 
 
 def scan_directory(directory: Union[Path, str]):
@@ -98,7 +105,9 @@ def fetch_data(file: Path):
         return []
 
 
-def output_csv(harvested_data: pd.DataFrame, output: Union[Path, str]):
+def output_csv(
+    harvested_data: pd.DataFrame, output: Union[Path, str], filename: Union[Path, str]
+):
     """
     Outputs the nested list of data elements read from the netCDF files into a CSV
 
@@ -106,7 +115,7 @@ def output_csv(harvested_data: pd.DataFrame, output: Union[Path, str]):
         harvested_data pd.DataFrame: Data elements from the harvested netCDF files.
         output Union[Path, str]: The output directory for the CSV file.d
     """
-    harvested_data.to_csv(Path(output) / "harvested_files.csv", index=False)
+    harvested_data.to_csv(Path(output) / filename, index=False)
 
 
 if __name__ == "__main__":
