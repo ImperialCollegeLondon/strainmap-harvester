@@ -1,4 +1,4 @@
-# Poetry Template
+# StrainMap files harvester
 
 [![Test and build](https://github.com/ImperialCollegeLondon/poetry_template_2/actions/workflows/ci.yml/badge.svg)](https://github.com/ImperialCollegeLondon/poetry_template_2/actions/workflows/ci.yml)
 
