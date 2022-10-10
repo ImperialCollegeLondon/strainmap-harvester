@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple
 
 import click
 import pandas as pd
@@ -27,22 +27,22 @@ def harvester(
 
     Args:
         directory (Union[Path, str]): Input directory containing the netCDF files
-        output (Union[Path, str]): Directory
+        output (Union[Path, str]): Directory of the output CSV file
+        filename (Union[Path, str]): Name of the CSV file
     """
     check_directories(directory, output)
 
     filename_data = scan_directory(directory)
 
-    output_csv(filename_data, output, filename)
+    filename_data.to_csv(Path(output) / filename, index=False)
 
 
-def check_directories(*directories: Union[Path, str]):
+def check_directories(*directories: Union[Path, str]) -> None:
     """
     Checks if the user-defined directories are existing directories
 
     Args:
-        directory (Union[Path, str]): Input directory containing the netCDF files
-        output (Union[Path, str]): Directory
+        directories (Union[Path, str]): Directories to check its existence
     """
 
     for directory in directories:
@@ -51,7 +51,7 @@ def check_directories(*directories: Union[Path, str]):
             raise click.UsageError(f"{directory} is not an existing directory")
 
 
-def scan_directory(directory: Union[Path, str]):
+def scan_directory(directory: Union[Path, str]) -> pd.DataFrame:
     """
     Recursively scans the directory for files we want harvesting,
     returning a dataframe of data elements from each file.
@@ -72,7 +72,7 @@ def scan_directory(directory: Union[Path, str]):
     for file in Path(directory).rglob("*_train.nc"):
         fetched_data = fetch_data(file)
         if fetched_data:
-            filename_data.append(fetched_data)
+            filename_data.append(list(fetched_data))
 
     harvested_data = pd.DataFrame(
         filename_data, columns=["absolute_path", "NAME", "CINE", "DATE"]
@@ -81,7 +81,7 @@ def scan_directory(directory: Union[Path, str]):
     return harvested_data
 
 
-def fetch_data(file: Path):
+def fetch_data(file: Path) -> Tuple[Path, str, str, datetime]:
     """
     Reads the file name and returns a list of the data elements found in the file name.
 
@@ -89,33 +89,22 @@ def fetch_data(file: Path):
         file: Union[Path, str]: File name of a netCDF file
 
     Returns:
-        List[Path, str, str, datetime]
+        Tuple[Path, str, str, datetime]
     """
     elements = str(file.name).split("_")
 
     # File name must contain exactly 3 underscores
     if len(elements) == 4:
-        return [
+        return (
             file,
             elements[0],
             elements[1],
             datetime.date(datetime.fromtimestamp(int(elements[2]))),
-        ]
+        )
     else:
-        return []
+        return ()
 
 
-def output_csv(
-    harvested_data: pd.DataFrame, output: Union[Path, str], filename: Union[Path, str]
-):
-    """
-    Outputs the nested list of data elements read from the netCDF files into a CSV
-
-    Args:
-        harvested_data pd.DataFrame: Data elements from the harvested netCDF files.
-        output Union[Path, str]: The output directory for the CSV file.d
-    """
-    harvested_data.to_csv(Path(output) / filename, index=False)
 
 
 if __name__ == "__main__":
